@@ -1,0 +1,702 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pampa Capital — Dashboard</title>
+  <script src="https://cdn.plot.ly/plotly-2.27.0.min.js"></script>
+  <style>
+    /* ── RESET & BASE ── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #0D1B2A;
+      color: #E0E8F0;
+      min-height: 100vh;
+    }
+
+    /* ── HEADER ── */
+    .header {
+      background: #1F3864;
+      border-bottom: 3px solid #2E74B5;
+      padding: 18px 32px 14px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-title {
+      font-size: 22px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: #FFFFFF;
+      text-transform: uppercase;
+    }
+    .header-sub {
+      font-size: 12px;
+      color: #90CAF9;
+      margin-top: 3px;
+      letter-spacing: 0.5px;
+    }
+    .header-date {
+      font-size: 12px;
+      color: #90CAF9;
+      text-align: right;
+    }
+
+    /* ── MAIN LAYOUT ── */
+    .main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 24px 24px 48px;
+    }
+
+    /* ── SECTION TITLES ── */
+    .section-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #90CAF9;
+      margin: 32px 0 12px;
+      border-bottom: 1px solid #2E74B5;
+      padding-bottom: 6px;
+    }
+
+    /* ── PORTFOLIO TABLES ── */
+    .portfolio-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+    .portfolio-section h3 {
+      font-size: 12px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #90CAF9;
+      margin-bottom: 10px;
+    }
+    .portfolio-section.allaria h3 { color: #64B5F6; }
+    .portfolio-section.ppp h3 { color: #81C784; }
+
+    .portfolio-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: #1A2A3D;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .portfolio-table thead tr {
+      background: #1F3864;
+      color: #FFFFFF;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      text-transform: uppercase;
+    }
+    .portfolio-table th,
+    .portfolio-table td {
+      padding: 6px 8px;
+      border-bottom: 1px solid rgba(46,116,181,0.2);
+      white-space: nowrap;
+    }
+    .portfolio-table thead th {
+      color: #FFFFFF;
+    }
+    .portfolio-table tbody tr:hover {
+      filter: brightness(1.08);
+    }
+    .portfolio-table tr.group-total {
+      background: #1F3864 !important;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 11px;
+    }
+    .portfolio-table tr.group-total td {
+      color: #FFFFFF;
+    }
+
+    /* ── FUND CARDS ── */
+    .fund-cards {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 4px;
+    }
+    .fund-card {
+      background: #1A2A3D;
+      border: 1px solid #2E74B5;
+      border-radius: 8px;
+      padding: 20px 24px;
+    }
+    .fund-card h2 {
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #2E74B5;
+    }
+    #card-allaria h2 { color: #64B5F6; }
+    #card-ppp h2 { color: #81C784; }
+
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+    }
+    .metric {
+      background: #12243A;
+      border-radius: 6px;
+      padding: 10px 12px;
+    }
+    .metric-label {
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 1px;
+      color: #90CAF9;
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .metric-value {
+      font-size: 18px;
+      font-weight: 700;
+      color: #FFFFFF;
+    }
+    .metric-fecha {
+      font-size: 14px;
+    }
+
+    /* ── PERFORMANCE TABLE ── */
+    .perf-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: #1A2A3D;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .perf-table thead tr {
+      background: #1F3864;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.8px;
+    }
+    .perf-table th,
+    .perf-table td {
+      padding: 9px 16px;
+      border-bottom: 1px solid rgba(46,116,181,0.2);
+      text-align: center;
+    }
+    .perf-table td:first-child {
+      text-align: left;
+      font-weight: 600;
+    }
+    .perf-table tr.row-allaria {
+      background: #112240;
+      color: #64B5F6;
+      font-weight: 700;
+    }
+    .perf-table tr.row-ppp {
+      background: #0E2218;
+      color: #81C784;
+      font-weight: 700;
+    }
+    .perf-table tr.row-benchmark {
+      background: #1A2A3D;
+      color: #90CAF9;
+    }
+    .perf-table tbody tr:hover {
+      filter: brightness(1.1);
+    }
+
+    /* ── CURVA IMPLÍCITA TABLE ── */
+    .curva-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      background: #1A2A3D;
+      border-radius: 6px;
+      overflow: hidden;
+    }
+    .curva-table thead tr {
+      background: #1F3864;
+      color: #FFFFFF;
+      font-weight: 700;
+      font-size: 11px;
+      letter-spacing: 0.8px;
+    }
+    .curva-table th,
+    .curva-table td {
+      padding: 9px 14px;
+      border-bottom: 1px solid rgba(46,116,181,0.2);
+    }
+    .curva-table thead th {
+      color: #FFFFFF;
+    }
+    .curva-label {
+      font-weight: 600;
+      text-align: left;
+      min-width: 160px;
+      color: #E0E8F0;
+    }
+    .curva-nota {
+      font-size: 9px;
+      font-weight: 400;
+      color: #90CAF9;
+      margin-left: 4px;
+    }
+    .curva-table tr.row-bkv {
+      background: #122038;
+      color: #64B5F6;
+      font-weight: 600;
+    }
+    .curva-table tr.row-rem {
+      background: #0E2218;
+      color: #81C784;
+      font-weight: 600;
+    }
+    .curva-table tr.row-dif {
+      background: #1A1A2E;
+      color: #FFD54F;
+      font-weight: 700;
+    }
+    .curva-table tbody tr:hover {
+      filter: brightness(1.08);
+    }
+    .curva-footnote {
+      font-size: 10px;
+      color: #4A6280;
+      margin-top: 7px;
+      font-style: italic;
+      line-height: 1.5;
+    }
+
+    /* ── CHART ── */
+    .chart-container {
+      background: #1A2A3D;
+      border: 1px solid #2E74B5;
+      border-radius: 8px;
+      padding: 4px;
+      margin-top: 4px;
+    }
+
+    /* ── FOOTER ── */
+    .footer {
+      text-align: center;
+      margin-top: 40px;
+      font-size: 10px;
+      color: #4A6280;
+      letter-spacing: 0.5px;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .fund-cards, .portfolio-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <div class="header">
+    <div>
+      <div class="header-title">Pampa Capital</div>
+      <div class="header-sub">Dashboard de Fondos — Renta Fija en Pesos</div>
+    </div>
+    <div class="header-date">
+      <div style="font-size:13px;color:#FFFFFF;font-weight:600">17/04/2026</div>
+      <div>Actualizado: 17/04/2026 14:00</div>
+    </div>
+  </div>
+
+  <div class="main">
+
+    <!-- 1. PORTFOLIOS -->
+    <div class="section-title">Posiciones de Cartera</div>
+    <div class="portfolio-grid">
+      <div class="portfolio-section allaria">
+        <h3>Allaria Gestion II</h3>
+        
+    <table class="portfolio-table" id="tbl-allaria">
+      <thead>
+        <tr>
+          <th>Instrumento</th>
+          <th>Vto</th>
+          <th style="text-align:right">% Fondo</th>
+          <th style="text-align:right">TNA</th>
+          <th style="text-align:right">TIR</th>
+          <th style="text-align:right">Duration</th>
+          <th style="text-align:right">ARS (miles)</th>
+        </tr>
+      </thead>
+      <tbody>
+    
+        <tr style="background:#F3E5F5">
+          <td title="TZXO6 - BONO CER OCTUBRE 2026" style="color:#1a2744;max-width:220px;overflow:hidden;text-overflow:ellipsis">TZXO6 - BONO CER OCTUBRE 2026</td>
+          <td style="color:#1a2744">26/10/31</td>
+          <td style="color:#1a2744;text-align:right">15.50%</td>
+          <td style="color:#1a2744;text-align:right">-3.97%</td>
+          <td style="color:#1a2744;text-align:right">-3.97%</td>
+          <td style="color:#1a2744;text-align:right">0.54</td>
+          <td style="color:#1a2744;text-align:right">$6,413,251</td>
+        </tr>
+    
+        <tr style="background:#F3E5F5">
+          <td title="X30N6 - LETRA NOVIEMBRE 2026" style="color:#1a2744;max-width:220px;overflow:hidden;text-overflow:ellipsis">X30N6 - LETRA NOVIEMBRE 2026</td>
+          <td style="color:#1a2744">26/11/30</td>
+          <td style="color:#1a2744;text-align:right">7.74%</td>
+          <td style="color:#1a2744;text-align:right">-2.59%</td>
+          <td style="color:#1a2744;text-align:right">-2.59%</td>
+          <td style="color:#1a2744;text-align:right">0.62</td>
+          <td style="color:#1a2744;text-align:right">$3,203,809</td>
+        </tr>
+    
+        <tr style="background:#F3E5F5">
+          <td title="TZXS8 - BONO CER SEPTIEMBRE 2028" style="color:#1a2744;max-width:220px;overflow:hidden;text-overflow:ellipsis">TZXS8 - BONO CER SEPTIEMBRE 2028</td>
+          <td style="color:#1a2744">28/09/30</td>
+          <td style="color:#1a2744;text-align:right">23.84%</td>
+          <td style="color:#1a2744;text-align:right">6.56%</td>
+          <td style="color:#1a2744;text-align:right">6.56%</td>
+          <td style="color:#1a2744;text-align:right">2.46</td>
+          <td style="color:#1a2744;text-align:right">$9,866,960</td>
+        </tr>
+    
+        <tr class="group-total">
+          <td>TOTAL BONCER</td>
+          <td></td>
+          <td style="text-align:right">47.08%</td>
+          <td style="text-align:right">1.59%</td>
+          <td style="text-align:right">1.59%</td>
+          <td style="text-align:right">1.53</td>
+          <td style="text-align:right">$19,484,020</td>
+        </tr>
+    
+        <tr style="background:#FFF3E0">
+          <td title="TTS26 - BONTAM SEPTIEMBRE 2026" style="color:#1a2744;max-width:220px;overflow:hidden;text-overflow:ellipsis">TTS26 - BONTAM SEPTIEMBRE 2026</td>
+          <td style="color:#1a2744">26/09/15</td>
+          <td style="color:#1a2744;text-align:right">24.64%</td>
+          <td style="color:#1a2744;text-align:right">24.61%</td>
+          <td style="color:#1a2744;text-align:right">24.61%</td>
+          <td style="color:#1a2744;text-align:right">0.41</td>
+          <td style="color:#1a2744;text-align:right">$10,195,770</td>
+        </tr>
+    
+        <tr style="background:#FFF3E0">
+          <td title="TTD26 - BONTAM DICIEMBRE 2026" style="color:#1a2744;max-width:220px;overflow:hidden;text-overflow:ellipsis">TTD26 - BONTAM DICIEMBRE 2026</td>
+          <td style="color:#1a2744">26/12/15</td>
+          <td style="color:#1a2744;text-align:right">25.74%</td>
+          <td style="color:#1a2744;text-align:right">24.79%</td>
+          <td style="color:#1a2744;text-align:right">24.79%</td>
+          <td style="color:#1a2744;text-align:right">0.66</td>
+          <td style="color:#1a2744;text-align:right">$10,651,012</td>
+        </tr>
+    
+        <tr class="group-total">
+          <td>TOTAL BONTAM</td>
+          <td></td>
+          <td style="text-align:right">50.38%</td>
+          <td style="text-align:right">24.70%</td>
+          <td style="text-align:right">24.70%</td>
+          <td style="text-align:right">0.54</td>
+          <td style="text-align:right">$20,846,782</td>
+        </tr>
+    
+        <tr style="background:#E8F5E9">
+          <td title="Liquidez / Money Market" style="color:#1a2744;max-width:220px;overflow:hidden;text-overflow:ellipsis">Liquidez / Money Market</td>
+          <td style="color:#1a2744"></td>
+          <td style="color:#1a2744;text-align:right">2.54%</td>
+          <td style="color:#1a2744;text-align:right">18.00%</td>
+          <td style="color:#1a2744;text-align:right">18.00%</td>
+          <td style="color:#1a2744;text-align:right">0.01</td>
+          <td style="color:#1a2744;text-align:right">$1,051,255</td>
+        </tr>
+    
+        <tr class="group-total">
+          <td>TOTAL MONEY MARKETS</td>
+          <td></td>
+          <td style="text-align:right">2.54%</td>
+          <td style="text-align:right">18.00%</td>
+          <td style="text-align:right">18.00%</td>
+          <td style="text-align:right">0.01</td>
+          <td style="text-align:right">$1,051,255</td>
+        </tr>
+    
+      </tbody>
+    </table>
+    
+      </div>
+      <div class="portfolio-section ppp">
+        <h3>Pampa Pesos Plus</h3>
+        
+    <table class="portfolio-table" id="tbl-ppp">
+      <thead>
+        <tr>
+          <th>Instrumento</th>
+          <th>Vto</th>
+          <th style="text-align:right">% Fondo</th>
+          <th style="text-align:right">TNA</th>
+          <th style="text-align:right">TIR</th>
+          <th style="text-align:right">Duration</th>
+          <th style="text-align:right">ARS (miles)</th>
+        </tr>
+      </thead>
+      <tbody>
+    
+        <tr style="background:#F3E5F5">
+          <td title="X29Y6 - LECER MAYO 2026" style="color:#1a2744;max-width:220px;overflow:hidden;text-overflow:ellipsis">X29Y6 - LECER MAYO 2026</td>
+          <td style="color:#1a2744">26/05/29</td>
+          <td style="color:#1a2744;text-align:right">24.86%</td>
+          <td style="color:#1a2744;text-align:right">-14.95%</td>
+          <td style="color:#1a2744;text-align:right">-14.01%</td>
+          <td style="color:#1a2744;text-align:right">0.13</td>
+          <td style="color:#1a2744;text-align:right">$1,753,716</td>
+        </tr>
+    
+        <tr style="background:#F3E5F5">
+          <td title="TZXO6 - BONO CER OCTUBRE 2026" style="color:#1a2744;max-width:220px;overflow:hidden;text-overflow:ellipsis">TZXO6 - BONO CER OCTUBRE 2026</td>
+          <td style="color:#1a2744">26/10/31</td>
+          <td style="color:#1a2744;text-align:right">24.98%</td>
+          <td style="color:#1a2744;text-align:right">-4.40%</td>
+          <td style="color:#1a2744;text-align:right">-4.36%</td>
+          <td style="color:#1a2744;text-align:right">0.55</td>
+          <td style="color:#1a2744;text-align:right">$1,762,163</td>
+        </tr>
+    
+        <tr class="group-total">
+          <td>TOTAL BONCER</td>
+          <td></td>
+          <td style="text-align:right">49.83%</td>
+          <td style="text-align:right">-9.67%</td>
+          <td style="text-align:right">-9.17%</td>
+          <td style="text-align:right">0.34</td>
+          <td style="text-align:right">$3,515,879</td>
+        </tr>
+    
+        <tr style="background:#FFF3E0">
+          <td title="TTS26 - BONO DUAL SEPTIEMBRE 2026" style="color:#1a2744;max-width:220px;overflow:hidden;text-overflow:ellipsis">TTS26 - BONO DUAL SEPTIEMBRE 2026</td>
+          <td style="color:#1a2744">26/09/15</td>
+          <td style="color:#1a2744;text-align:right">25.09%</td>
+          <td style="color:#1a2744;text-align:right">28.03%</td>
+          <td style="color:#1a2744;text-align:right">30.80%</td>
+          <td style="color:#1a2744;text-align:right">0.32</td>
+          <td style="color:#1a2744;text-align:right">$1,770,482</td>
+        </tr>
+    
+        <tr style="background:#FFF3E0">
+          <td title="TTD26 - BONO DUAL DICIEMBRE 2026" style="color:#1a2744;max-width:220px;overflow:hidden;text-overflow:ellipsis">TTD26 - BONO DUAL DICIEMBRE 2026</td>
+          <td style="color:#1a2744">26/12/15</td>
+          <td style="color:#1a2744;text-align:right">25.07%</td>
+          <td style="color:#1a2744;text-align:right">28.83%</td>
+          <td style="color:#1a2744;text-align:right">30.87%</td>
+          <td style="color:#1a2744;text-align:right">0.51</td>
+          <td style="color:#1a2744;text-align:right">$1,769,002</td>
+        </tr>
+    
+        <tr class="group-total">
+          <td>TOTAL BONTAM</td>
+          <td></td>
+          <td style="text-align:right">50.17%</td>
+          <td style="text-align:right">28.43%</td>
+          <td style="text-align:right">30.83%</td>
+          <td style="text-align:right">0.41</td>
+          <td style="text-align:right">$3,539,484</td>
+        </tr>
+    
+      </tbody>
+    </table>
+    
+      </div>
+    </div>
+
+    <!-- 2. FUND SUMMARY CARDS -->
+    <div class="section-title">Métricas de Fondos</div>
+    <div class="fund-cards">
+      
+        <div class="fund-card" id="card-allaria">
+          <h2>ALLARIA GESTION II</h2>
+          <div class="metrics-grid">
+            <div class="metric">
+              <div class="metric-label">AUM</div>
+              <div class="metric-value">$41.4B</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">NAV-C</div>
+              <div class="metric-value">2193.762840</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">TNA</div>
+              <div class="metric-value">24.38%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">TIR</div>
+              <div class="metric-value">25.79%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Duration</div>
+              <div class="metric-value">0.52 años</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Fecha</div>
+              <div class="metric-value metric-fecha">17/04/2026</div>
+            </div>
+          </div>
+        </div>
+        
+      
+        <div class="fund-card" id="card-ppp">
+          <h2>PAMPA PESOS PLUS</h2>
+          <div class="metrics-grid">
+            <div class="metric">
+              <div class="metric-label">AUM</div>
+              <div class="metric-value">$7.1B</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">NAV-C</div>
+              <div class="metric-value">1.007909</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">TNA</div>
+              <div class="metric-value">23.40%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">TIR</div>
+              <div class="metric-value">25.11%</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Duration</div>
+              <div class="metric-value">0.38 años</div>
+            </div>
+            <div class="metric">
+              <div class="metric-label">Fecha</div>
+              <div class="metric-value metric-fecha">17/04/2026</div>
+            </div>
+          </div>
+        </div>
+        
+    </div>
+
+    <!-- 3. PERFORMANCE -->
+    <div class="section-title">Performance Comparada</div>
+    
+    <table class="perf-table">
+      <thead><tr><th>Fondo</th><th>1M</th><th>3M</th><th>YTD</th><th>1 Año</th><th>Desde Inicio</th></tr></thead>
+      <tbody>
+        <tr class='row-allaria'><td>Allaria Gestion II</td><td>0.92%</td><td>11.83%</td><td>13.65%</td><td>56.11%</td><td>118.85%</td></tr>
+        <tr class='row-ppp'><td>Pampa Pesos Plus</td><td>-</td><td>-</td><td>-</td><td>-</td><td>-</td></tr>
+        <tr class='row-benchmark'><td>Benchmark (Ahorro Plus T+1)</td><td>2.24%</td><td>8.14%</td><td>8.22%</td><td>-</td><td>8.22%</td></tr>
+      </tbody>
+    </table>
+    
+
+    <!-- 4. CURVA IMPLÍCITA / BREAKEVEN + REM BCRA -->
+    <div class="section-title">Curva Implícita — Breakeven Pesos &amp; REM BCRA</div>
+    
+    <table class="curva-table">
+      <thead>
+        <tr>
+          <th style="text-align:left;width:160px">Indicador</th>
+          <th style="text-align:center">May</th><th style="text-align:center">Jun</th><th style="text-align:center">Jul</th><th style="text-align:center">Ago</th><th style="text-align:center">Sep</th><th style="text-align:center">Oct</th><th style="text-align:center">T2026</th><th style="text-align:center">2027</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="row-bkv"><td class="curva-label">Breakeven LECAP/LECER<span class='curva-nota'> (TEM)</span></td><td style="text-align:center">3.07%</td><td style="text-align:center">3.12%</td><td style="text-align:center">2.90%</td><td style="text-align:center">2.73%</td><td style="text-align:center">-</td><td style="text-align:center">2.28%</td><td style="text-align:center">29.78%</td><td style="text-align:center">-</td></tr>
+        <tr class="row-rem"><td class="curva-label">REM BCRA<span class='curva-nota'> (TEM)</span></td><td style="text-align:center">2.21%</td><td style="text-align:center">2.03%</td><td style="text-align:center">1.98%</td><td style="text-align:center">1.83%</td><td style="text-align:center">1.77%</td><td style="text-align:center">-</td><td style="text-align:center">29.82%</td><td style="text-align:center">19.15%</td></tr>
+        <tr class="row-dif"><td class="curva-label">Diferencial</td><td style="text-align:center">0.86%</td><td style="text-align:center">1.09%</td><td style="text-align:center">0.92%</td><td style="text-align:center">0.90%</td><td style="text-align:center">-</td><td style="text-align:center">-</td><td style="text-align:center">-0.04%</td><td style="text-align:center">-</td></tr>
+      </tbody>
+    </table>
+    <p class="curva-footnote">Breakeven: inflación mensual implícita en precios de mercado (LECAP vs LECER). REM: estimación de analistas (BCRA). Diferencial positivo → mercado paga más que REM.</p>
+    
+
+    <!-- 5. NAV CHART -->
+    <div class="section-title">Evolución NAV (base 100)</div>
+    <div class="chart-container">
+      <div id="nav-chart" style="height:380px"></div>
+    </div>
+
+  </div>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Pampa Capital &mdash; Uso interno. Datos al 17/04/2026. Generado 17/04/2026 14:00.
+  </div>
+
+  <!-- PLOTLY CHART -->
+  <script>
+  (function() {
+    var data = {"allaria": {"x": ["2026-01-02", "2026-01-05", "2026-01-06", "2026-01-07", "2026-01-08", "2026-01-09", "2026-01-12", "2026-01-13", "2026-01-14", "2026-01-15", "2026-01-16", "2026-01-19", "2026-01-20", "2026-01-21", "2026-01-22", "2026-01-23", "2026-01-26", "2026-01-27", "2026-01-28", "2026-01-29", "2026-01-30", "2026-02-02", "2026-02-03", "2026-02-04", "2026-02-05", "2026-02-06", "2026-02-09", "2026-02-10", "2026-02-11", "2026-02-12", "2026-02-13", "2026-02-18", "2026-02-19", "2026-02-20", "2026-02-23", "2026-02-24", "2026-02-25", "2026-02-26", "2026-02-27", "2026-03-02", "2026-03-03", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-09", "2026-03-10", "2026-03-11", "2026-03-12", "2026-03-13", "2026-03-16", "2026-03-19", "2026-03-20", "2026-03-25", "2026-03-30", "2026-03-31", "2026-04-01", "2026-04-06", "2026-04-07", "2026-04-08", "2026-04-10", "2026-04-13"], "y": [100.0, 100.3738, 100.4906, 100.6216, 100.9452, 101.6211, 101.5989, 101.2846, 101.5813, 101.3346, 101.6784, 101.8927, 101.9636, 101.8574, 102.206, 102.4562, 102.4484, 102.8136, 102.8545, 102.8189, 103.1572, 103.1422, 103.3127, 103.8449, 103.7716, 104.1437, 104.2906, 104.6854, 104.6418, 105.0269, 105.5345, 105.8152, 105.7111, 106.0256, 106.0236, 106.7817, 106.8467, 107.2383, 107.7529, 107.7395, 107.6884, 108.1233, 107.9217, 108.1575, 108.4184, 108.6549, 108.6999, 109.0517, 109.9105, 110.7151, 110.769, 110.9445, 111.2377, 112.2239, 112.575, 113.1271, 113.5642, 113.5635, 113.508, 113.5715, 113.6136]}, "ppp": {"x": ["2026-04-13", "2026-04-14", "2026-04-15", "2026-04-16", "2026-04-17"], "y": [100.0, 100.0712, 100.0961, 100.3685, 100.5607]}};
+
+    var traces = [];
+
+    if (data.allaria.x.length > 0) {
+      traces.push({
+        x: data.allaria.x,
+        y: data.allaria.y,
+        name: 'Allaria Gestion II',
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: '#64B5F6', width: 2.5 },
+        hovertemplate: '%{x}<br>Base 100: <b>%{y:.2f}</b><extra>Allaria</extra>'
+      });
+    }
+
+    if (data.ppp.x.length > 0) {
+      traces.push({
+        x: data.ppp.x,
+        y: data.ppp.y,
+        name: 'Pampa Pesos Plus',
+        type: 'scatter',
+        mode: 'lines',
+        line: { color: '#81C784', width: 2.5, dash: 'dot' },
+        hovertemplate: '%{x}<br>Base 100: <b>%{y:.2f}</b><extra>PPP</extra>'
+      });
+    }
+
+    var layout = {
+      paper_bgcolor: '#1A2A3D',
+      plot_bgcolor:  '#12243A',
+      font: { color: '#90CAF9', family: 'Segoe UI, Arial, sans-serif', size: 11 },
+      margin: { t: 24, r: 24, b: 48, l: 60 },
+      legend: {
+        orientation: 'h',
+        x: 0, y: 1.08,
+        bgcolor: 'rgba(0,0,0,0)',
+        font: { size: 12, color: '#ECEFF1' }
+      },
+      xaxis: {
+        gridcolor: '#1F3864',
+        linecolor: '#2E74B5',
+        tickfont: { size: 10 },
+        type: 'date'
+      },
+      yaxis: {
+        gridcolor: '#1F3864',
+        linecolor: '#2E74B5',
+        tickfont: { size: 10 },
+        title: { text: 'Base 100', font: { size: 11 } }
+      },
+      hovermode: 'x unified',
+      hoverlabel: {
+        bgcolor: '#1F3864',
+        bordercolor: '#2E74B5',
+        font: { color: '#FFFFFF', size: 11 }
+      }
+    };
+
+    var config = {
+      responsive: true,
+      displayModeBar: true,
+      displaylogo: false,
+      modeBarButtonsToRemove: ['select2d','lasso2d','autoScale2d']
+    };
+
+    Plotly.newPlot('nav-chart', traces, layout, config);
+  })();
+  </script>
+
+</body>
+</html>
