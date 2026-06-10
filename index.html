@@ -305,6 +305,11 @@
 </head>
 <body>
 
+  <!-- STALE DATA BANNER -->
+  <div id="stale-banner" style="display:none;background:#C0392B;color:#fff;padding:11px 20px;font-size:13px;font-weight:600;text-align:center;position:sticky;top:0;z-index:9999;letter-spacing:0.3px;">
+    ⚠️ <span id="stale-msg"></span>
+  </div>
+
   <!-- HEADER -->
   <div class="header">
     <div>
@@ -313,7 +318,7 @@
     </div>
     <div class="header-date">
       <div style="font-size:13px;color:#FFFFFF;font-weight:600">9/6/2026</div>
-      <div>Actualizado: 10/06/2026 11:02</div>
+      <div>Actualizado: 10/06/2026 11:47</div>
     </div>
   </div>
 
@@ -1016,7 +1021,7 @@
 
   <!-- FOOTER -->
   <div class="footer">
-    PAMPA PESOS PLUS &mdash; Uso interno. Datos al 9/6/2026. Generado 10/06/2026 11:02.
+    PAMPA PESOS PLUS &mdash; Uso interno. Datos al 9/6/2026. Generado 10/06/2026 11:47.
   </div>
 
   <!-- PLOTLY CHART -->
@@ -1095,7 +1100,7 @@
   <!-- Auto-refresh: recarga cuando hay datos nuevos en GitHub Pages -->
   <script>
   (function() {
-    var loadedTs = '2026-06-10T11:02';
+    var loadedTs = '2026-06-10T11:47';
     function checkUpdate() {
       fetch('version.json?_=' + Date.now(), {cache: 'no-store'})
         .then(function(r) { return r.json(); })
@@ -1107,6 +1112,41 @@
         .catch(function() {});
     }
     setInterval(checkUpdate, 60000);  // chequea cada 60 seg
+  })();
+  </script>
+
+  <script>
+  (function() {
+    function lastBizDay(d) {
+      d = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      do { d.setDate(d.getDate() - 1); } while (d.getDay() === 0 || d.getDay() === 6);
+      return d;
+    }
+    var today = new Date();
+    var expected = lastBizDay(today);
+
+    function parseISO(s) {
+      if (!s) return null;
+      var p = s.split('-');
+      return p.length === 3 ? new Date(+p[0], +p[1]-1, +p[2]) : null;
+    }
+    function fmtDate(d) {
+      return d ? (String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear()) : '?';
+    }
+
+    var allariaD = parseISO("2026-06-09");
+    var pppD     = parseISO("2026-06-09");
+
+    var stale = [];
+    if (allariaD && allariaD < expected) stale.push('Allaria (dato: ' + fmtDate(allariaD) + ')');
+    if (pppD     && pppD     < expected) stale.push('PPP (dato: '     + fmtDate(pppD)     + ')');
+
+    if (stale.length > 0) {
+      document.getElementById('stale-banner').style.display = 'block';
+      document.getElementById('stale-msg').textContent =
+        'Pipeline no corrió — datos desactualizados: ' + stale.join(' · ') +
+        '  |  Esperado: ' + fmtDate(expected);
+    }
   })();
   </script>
 
