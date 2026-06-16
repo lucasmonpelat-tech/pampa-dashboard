@@ -318,7 +318,7 @@
     </div>
     <div class="header-date">
       <div style="font-size:13px;color:#FFFFFF;font-weight:600">12/6/2026</div>
-      <div>Actualizado: 16/06/2026 11:23</div>
+      <div>Actualizado: 16/06/2026 11:26</div>
     </div>
   </div>
 
@@ -987,7 +987,7 @@
 
   <!-- FOOTER -->
   <div class="footer">
-    PAMPA PESOS PLUS &mdash; Uso interno. Datos al 12/6/2026. Generado 16/06/2026 11:23.
+    PAMPA PESOS PLUS &mdash; Uso interno. Datos al 12/6/2026. Generado 16/06/2026 11:26.
   </div>
 
   <!-- PLOTLY CHART -->
@@ -1066,7 +1066,7 @@
   <!-- Auto-refresh: recarga cuando hay datos nuevos en GitHub Pages -->
   <script>
   (function() {
-    var loadedTs = '2026-06-16T11:23';
+    var loadedTs = '2026-06-16T11:26';
     function checkUpdate() {
       fetch('version.json?_=' + Date.now(), {cache: 'no-store'})
         .then(function(r) { return r.json(); })
@@ -1083,8 +1083,11 @@
 
   <script>
   (function() {
-    var MAX_DIAS = 5;  // tolera feriados, puentes, fines de semana largos
-
+    function lastBizDay(d) {
+      d = new Date(d.getFullYear(), d.getMonth(), d.getDate());
+      do { d.setDate(d.getDate() - 1); } while (d.getDay() === 0 || d.getDay() === 6);
+      return d;
+    }
     function parseISO(s) {
       if (!s) return null;
       var p = s.split('-');
@@ -1093,22 +1096,21 @@
     function fmtDate(d) {
       return d ? (String(d.getDate()).padStart(2,'0') + '/' + String(d.getMonth()+1).padStart(2,'0') + '/' + d.getFullYear()) : '?';
     }
-    function diasDesde(d) {
-      var hoy = new Date(); hoy.setHours(0,0,0,0);
-      return Math.floor((hoy - d) / 86400000);
-    }
 
+    var today = new Date();
+    var expected = lastBizDay(today);
     var allariaD = parseISO("2026-06-12");
     var pppD     = parseISO("2026-06-12");
 
     var stale = [];
-    if (allariaD && diasDesde(allariaD) > MAX_DIAS) stale.push('Allaria (dato: ' + fmtDate(allariaD) + ')');
-    if (pppD     && diasDesde(pppD)     > MAX_DIAS) stale.push('PPP (dato: '     + fmtDate(pppD)     + ')');
+    if (allariaD && allariaD < expected) stale.push('Allaria (dato: ' + fmtDate(allariaD) + ')');
+    if (pppD     && pppD     < expected) stale.push('PPP (dato: '     + fmtDate(pppD)     + ')');
 
     if (stale.length > 0) {
       document.getElementById('stale-banner').style.display = 'block';
       document.getElementById('stale-msg').textContent =
-        'Pipeline no corrió — datos desactualizados: ' + stale.join(' · ');
+        'Pipeline no corrió — datos desactualizados: ' + stale.join(' · ') +
+        '  |  Esperado: ' + fmtDate(expected);
     }
   })();
   </script>
